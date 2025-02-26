@@ -1,0 +1,154 @@
+import mysql.connector  as c
+con=c.connect(user='root',password='1234',host='localhost')
+cs=con.cursor()
+cs.execute('create database if not exists Car_Rent')
+cs.execute('use Car_Rent')
+cs.execute('create table if not exists Vehicles(Code int(5) primary key,Company varchar(10),Name varchar(15),Type varchar(15),Price_Per_Day int(5),Status varchar(20))')
+while True:
+    print('     Alpha Car Rental     ')
+    print('    Low Cost Car Hire    ')
+    print('Welcome to Our Website')
+    print('Logging In as?')
+    print(' 1.Customer','\n','2.Employee')
+    Log_In=int(input('Enter Identity:'))
+    if Log_In==1:
+        print('We have all kinds of Vehicles available')
+        print(' Toyota','\n','Nissan','\n','Jeep','\n','Ford','\n','Mercedes','\n','Aston Martin','\n','Land Rover','\n','Porsche','\n','Honda','\n','BMW','\n','Renault')
+        Company_Choice=input('Which Vehicle Company is your choice of liking?:')
+        print('Which type of Vehicle are you looking for?','\n','Sedan','\n','SUV','\n','Jeep','\n','Hatchback','\n','Truck','\n','Coupe')
+        Type_Choice=input('Enter Vehicle Type Choice:')
+        cs.execute('select Code,Company,Name,Type,Price_Per_Day,Status from Vehicles where Company="%s"and Type="%s"'%(Company_Choice,Type_Choice))
+        r=cs.fetchall()
+        for i in r:
+            print(i)
+        Vehicle_Choice=int(input('Enter Vehicle Code of your chosen Vehicle:'))
+        cs.execute('select Code,Company,Name,Type,Price_Per_Day,Status from Vehicles where Code="%s"'%(Vehicle_Choice))
+        r=cs.fetchall()
+        
+        if r[0][5]!='Available':
+            print('sorry,requested vehicle not available')
+        else:
+            print('Price per day of Car is :')
+            cs.execute('select Price_Per_Day from Vehicles where Code=%s'%(Vehicle_Choice))
+            r=cs.fetchall()
+            for i in r:
+                print(i)
+            print('Are you sure that you want to rent?:',Vehicle_Choice)
+            Confirm_Choice=input('[y/n]?:')
+            if Confirm_Choice=='y':
+                print('Bill')
+                print('Renting Vehicle Price;')
+                cs.execute('select Price_Per_Day from Vehicles where Code="%s"'%(Vehicle_Choice))
+                p=cs.fetchone()[0]                
+                Customer_Name=input('Enter your Name:')
+                Customer_Address=input('Enter your Address:')
+                Customer_Contact=int(input('Enter Mobile No.:'))
+                noofdays=int(input('Enter no. of days:'))
+                daterent=input('Enter date(yyyy-mm-dd):')
+                finalbill=p*noofdays
+                print('Your final bill=',finalbill,'AED')
+                print('\nTake Picture or Screenshot for proof of Purchase')
+                print('Thank You')
+                cs.execute('Create table if not exists customer(Customer_Name varchar(20),Customer_Address varchar(20),Customer_Contact int(10),NoOfDays int(2),DateRent date,Vehical_Choice int(3),finalbill int(10))')
+                con.commit()
+                cs.execute('insert into customer values("%s","%s","%s",%s,"%s",%s,%s)'%(Customer_Name,Customer_Address,Customer_Contact,noofdays,daterent,Vehicle_Choice,finalbill))
+                con.commit()
+                cs.execute('update vehicles set Status="NotAvailable" where Code=%s'%(Vehicle_Choice))
+                con.commit()
+                break
+            else:
+                break
+    if Log_In==2:
+        Emp_Name=input('Enter Name:')
+        Password=input('Enter Password:')
+        if Emp_Name not in Password and Password=='x':
+            print('Your code is Valid You May Proceed')
+            print('\n\nControls of Employee;')
+            print('1.Add New Vehicles')
+            print('2.Remove Vehicles information')
+            print('3.Update vehicles information')
+            print('4.Display all Vehicles Available')
+            print('5.View customer report')
+            print('6.Exit')
+            Emp_Choice=int(input('Enter Choice(1/2/3/4/5):'))
+            if Emp_Choice==1:
+                Vehicle_Code=int(input('Enter Vehicle Code:'))
+                Vehicle_Maufacturer=input('Enter Vehicle Company Manufacturer:')
+                Vehicle_Name=input('Enter Vehicle Name:')
+                Vehicle_Type=input('Enter Vehicle Type:')
+                Vehicle_PricePerDay=int(input('Enter Vehicle PricePerDay:'))
+                Vehicle_Status=input('Enter Vehicle Status:')
+                cs.execute('insert into Vehicles values(%s,"%s","%s","%s",%s,"%s")'%(Vehicle_Code,Vehicle_Maufacturer,Vehicle_Name,Vehicle_Type,Vehicle_PricePerDay,Vehicle_Status))
+                con.commit()
+            elif Emp_Choice==2: 
+                cs.execute('select * from Vehicles')
+                r=cs.fetchall() 
+                for i in r:
+                    print(i)
+                Vehicle_Code=int(input('Enter Vehicle Code:'))
+                cs.execute('delete from Vehicles where Code="%s"'%(Vehicle_Code))
+                con.commit()
+                cs.execute('select * from Vehicles')
+                r=cs.fetchall() 
+                for i in r:
+                    print(i)      
+            elif Emp_Choice==3:
+                cs.execute("select * from Vehicles")
+                data=cs.fetchall()
+                for x in data:
+                          print(x)
+                print('==========================')
+                print('UPDATION')
+                print('1.Company')
+                print('2.Name')
+                print('3.Type')
+                print('4.PricePerDay')
+                print('5.Status')                
+                choice =int(input('Enter choice 1/2/3/4/5:'))
+                cs=con.cursor()
+                if choice==1:
+                    code=int(input('Enter vehicle code:'))
+                    cname=input('Enter new company name:')
+                    cs.execute('Update vehicles set Company="%s" where code=%s' %(cname,code))
+                    print('Updation successful!')
+                    con.commit()
+                elif choice==2:
+                    code=int(input('Enter vehicle code:'))
+                    name=input('Enter new vehicle name:')
+                    cs.execute('Update vehicles set name="%s" where code=%s' %(name,code))
+                    print('Updation successful!')
+                    con.commit()
+                    
+                elif choice==3:
+                  code=int(input('Enter vehicle code:'))
+                  type=input('Enter new vehicle type:')
+                  cs.execute('Update vehicles set type="%s" where code=%s' %(type,code))
+                  print('Updation successful!')
+                  con.commit()
+                elif choice==4:
+                   code=int(input('Enter vehicle code:'))
+                   p=int(input('Enter new rate:'))
+                   cs.execute('Update vehicles set price_per_day=%s where code=%s' %(p,code))
+                   print('Updation successful!')
+                   con.commit()
+                elif choice==5:
+                    code=int(input('Enter vehicle code:'))
+                    status=input('Enter new status:')
+                    cs.execute('Update vehicles set status="%s" where code=%s' %(status,code))
+                    print('Updation successful!')
+                    con.commit()
+                
+            elif Emp_Choice==4:
+                cs.execute('select code,company,name,type,price_per_day,status from Vehicles where status="Available"')
+                r=cs.fetchall()
+                for i in r:
+                    print(i)
+            elif Emp_Choice==5:
+                cs.execute('Select * from customer')
+                data=cs.fetchall()
+                for i in data:
+                    print(i)
+            else:
+                break
+            print('=================================')
+            print()
